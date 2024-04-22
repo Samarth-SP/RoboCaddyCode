@@ -156,7 +156,30 @@ def InferenceTensorFlow(image, model):
                 angle2= 180/math.pi*np.arctan(((centerx-160.0)/320.0*(47.0+108.0*centery/240.0))/(18.65+112.7*centery/240.0))
                 return angle2
 
-
+def DetectionRuntime():
+    for i in range(12):
+        #Camera Frame Capture (sleep to stabilize frame)
+        time.sleep(1)
+        ##run tensorflow model on a low resolution stream buffer from the picamera
+        buffer = camera.capture_buffer("lores")
+        grey = buffer[:stride*lowS[1]].reshape((lowS[1], stride))
+        result = InferenceTensorFlow(grey,'mobilenet_v2.tflite')
+        ##result returns an angle to the ball, or None if there's nothing
+        if result is not None:
+            print(result)
+            ##turn the specified angle, start intake, and drive forward 3s with intake on for 4s
+            GyroTurn(not(result>0),result*0.1)
+            Intake()
+            Drive(True, 2)
+            time.sleep(1)
+            Reset(16, 20)
+            Reset(19, 13)
+            DetectionRuntime()
+            break
+        ##break loop once something is detected
+        else:
+            ##if nothing is detected, keep turning
+            GyroTurn(True, 360.0/20)
 
 ##Main Runtime
 MPU_Init()
@@ -173,27 +196,6 @@ while time.time() < startTime+15:
     time.sleep(0.01)
 OFFSET_Z = gyroZsum/1500.0
 ##Cover the 360 degree detection range in 12 turns
-for i in range(12):
-#Camera Frame Capture (sleep to stabilize frame)
-    time.sleep(1)
-    ##run tensorflow model on a low resolution stream buffer from the picamera
-    buffer = camera.capture_buffer("lores")
-    grey = buffer[:stride*lowS[1]].reshape((lowS[1], stride))
-    result = InferenceTensorFlow(grey,'mobilenet_v2.tflite')
-    ##result returns an angle to the ball, or None if there's nothing
-    if result is not None:
-        print(result)
-        ##turn the specified angle, start intake, and drive forward 3s with intake on for 4s
-        GyroTurn(not(result>0),result*0.2)
-        Intake()
-        Drive(True, 3)
-        time.sleep(1)
-        Reset(16, 20)
-        Reset(19, 13)
-        break
-        ##break loop once something is detected
-    else:
-        ##if nothing is detected, keep turning
-        GyroTurn(True, 360.0/20)
+DetectionRuntime()
 GPIO.cleanup()
 
