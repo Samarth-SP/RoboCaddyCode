@@ -168,9 +168,9 @@ def DetectionRuntime():
         if result is not None:
             print(result)
             ##turn the specified angle, start intake, and drive forward 3s with intake on for 4s
-            GyroTurn(not(result>0),result*0.1)
+            GyroTurn(not(result>0),result*0.2)
             Intake()
-            Drive(True, 2)
+            Drive(True, 3)
             time.sleep(1)
             Reset(16, 20)
             Reset(19, 13)
@@ -185,6 +185,10 @@ def DetectionRuntime():
 MPU_Init()
 startTime = time.time()
 gyroZsum = 0
+Reset(16, 20)
+Reset(19, 13)
+Reset(14, 15)
+Reset(23, 24)
 ##Start a 15 second gyro calibration period
 camera = Picamera2()
 config = camera.create_preview_configuration(main={"size": normS}, lores={"size": lowS, "format": "YUV420"})
@@ -198,4 +202,3 @@ OFFSET_Z = gyroZsum/1500.0
 ##Cover the 360 degree detection range in 12 turns
 DetectionRuntime()
 GPIO.cleanup()
-

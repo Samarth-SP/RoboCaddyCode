@@ -76,7 +76,7 @@ def InferenceTensorFlow(image, model, output, label=None):
             score = detected_scores[0][i]
         else:
             score = 0
-        if score > 0.3:
+        if score > 0.1:
             xmin = left * initial_w
             ymin = bottom * initial_h
             xmax = right * initial_w
